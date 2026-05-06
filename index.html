@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GDMT Navigator Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root {
+    --teal-dark: #1B5E7B;
+    --teal-mid: #2E86AB;
+    --teal-light: #e8f4f8;
+    --arni-color: #2E86AB;
+    --bb-color: #1B5E7B;
+    --mra-color: #7B4EA0;
+    --sglt2-color: #E07B39;
+    --green-action: #1a7a2e;
+    --blue-action: #0d47a1;
+    --orange-action: #b35900;
+    --red-action: #c62828;
+    --gray-action: #555;
+    --bg: #f0f4f7;
+    --white: #ffffff;
+    --border: #d0dde5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    font-size: 13px;
+    color: #222;
+  }
+  .app-wrapper {
+    max-width: 980px;
+    margin: 18px auto 40px;
+    background: #fff;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .demo-watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%) rotate(-35deg);
+    font-size: 120px;
+    color: rgba(0,0,0,0.03);
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 0;
+    user-select: none;
+    letter-spacing: 8px;
+  }
+
+  /* Selector bar */
+  .selector-bar {
+    background: #fff;
+    border-bottom: 2px solid var(--teal-dark);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .selector-bar label { font-weight: 600; color: #333; font-size: 13px; }
+  .selector-bar select {
+    border: 1.5px solid var(--teal-dark);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 13px;
+    color: #222;
+    background: #fff;
+    cursor: pointer;
+  }
+  .demo-badge {
+    background: #E07B39;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    margin-left: 4px;
+  }
+
+  /* Header */
+  .report-header {
+    background: var(--teal-dark);
+    padding: 14px 20px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .report-header h1 { color: #fff; font-size: 22px; font-weight: 700; }
+  .report-header .provider-name { color: #fff; font-size: 16px; opacity: 0.92; }
+  .report-subheader {
+    background: #174f68;
+    border-top: 1px solid #2a7a9a;
+    padding: 8px 20px;
+    color: #cce8f4;
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  /* Principles + Drug Cards */
+  .principles-section {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+  }
+  .principles-left {
+    padding: 16px 18px;
+    border-right: 1px solid var(--border);
+    background: #fafcfd;
+  }
+  .principles-left h3 {
+    color: var(--teal-dark);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .principles-left ul {
+    list-style: none;
+    padding: 0;
+  }
+  .principles-left ul li {
+    padding: 4px 0 4px 16px;
+    position: relative;
+    color: #333;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .principles-left ul li::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 10px;
+    width: 5px;
+    height: 5px;
+    background: var(--teal-mid);
+    border-radius: 50%;
+  }
+  .stat-box {
+    background: var(--teal-dark);
+    color: #fff;
+    border-radius: 5px;
+    padding: 12px 14px;
+    margin-top: 14px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .stat-box strong { font-size: 13.5px; }
+  .stat-box .source { font-size: 10.5px; opacity: 0.75; margin-top: 6px; display: block; }
+  .drug-cards-right {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  .drug-cards-right h3 {
+    color: var(--teal-dark);
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .drug-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .drug-card {
+    border-radius: 5px;
+    padding: 10px 9px;
+    color: #fff;
+    font-size: 11px;
+  }
+  .drug-card .dc-class {
+    font-weight: 700;
+    font-size: 12px;
+    margin-bottom: 3px;
+  }
+  .drug-card .dc-generic { font-style: italic; opacity: 0.92; margin-bottom: 6px; font-size: 11px; }
+  .drug-card .dc-row { margin-bottom: 2px; }
+  .drug-card .dc-label { opacity: 0.78; font-size: 10px; text-transform: uppercase; }
+  .drug-card .dc-val { font-weight: 600; font-size: 11px; }
+  .drug-card .dc-params { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.25); font-size: 10.5px; opacity: 0.9; }
+
+  /* Section Header */
+  .section-header {
+    background: #e8f4f8;
+    border-top: 2px solid var(--teal-mid);
+    border-bottom: 2px solid var(--teal-mid);
+    padding: 9px 20px;
+    color: var(--teal-dark);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+  }
+
+  /* Patient card */
+  .patient-card {
+    border-bottom: 3px solid var(--border);
+  }
+  .patient-header {
+    background: var(--teal-dark);
+    padding: 9px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .patient-header-left { color: #fff; }
+  .patient-name { font-weight: 700; font-size: 15px; }
+  .patient-meta { font-size: 12px; opacity: 0.88; margin-top: 1px; }
+  .patient-header-right { color: #cce8f4; font-size: 12px; text-align: right; }
+  .quadruple-badge {
+    background: #ffd700;
+    color: #333;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+  }
+
+  /* GDMT Table */
+  .gdmt-table-wrap {
+    overflow-x: auto;
+    padding: 0;
+  }
+  .gdmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .gdmt-table thead th {
+    background: #2a6e8c;
+    color: #fff;
+    padding: 7px 10px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .gdmt-table tbody tr {
+    border-bottom: 1px solid #e2ecf2;
+  }
+  .gdmt-table tbody tr:nth-child(even) { background: #f7fafc; }
+  .gdmt-table tbody tr:nth-child(odd) { background: #fff; }
+  .gdmt-table td {
+    padding: 9px 10px;
+    vertical-align: top;
+    font-size: 12px;
+  }
+  .drug-class-name { font-weight: 700; font-size: 13px; }
+  .drug-generic { font-style: italic; color: #444; font-size: 11.5px; }
+  .drug-brand { color: #666; font-size: 11px; }
+  .home-med-badge {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #0d47a1;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-top: 3px;
+    border: 1px solid #90caf9;
+  }
+
+  /* Param dots */
+  .param-list { list-style: none; padding: 0; }
+  .param-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 3px;
+    font-size: 11.5px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-green { background: #2e7d32; }
+  .dot-red { background: #c62828; }
+  .dot-yellow { background: #f9a825; }
+
+  /* On Med */
+  .on-med-yes { color: #1a7a2e; font-weight: 700; }
+  .on-med-no { color: #c62828; font-weight: 700; }
+
+  /* Dose */
+  .current-dose { font-weight: 700; }
+  .target-dose { color: #777; font-style: italic; font-size: 11px; }
+  .not-prescribed { color: #c62828; font-style: italic; font-size: 11px; }
+
+  /* Recommendation */
+  .rec-text { line-height: 1.55; color: #2a2a2a; font-size: 12px; }
+  .rec-action { font-weight: 700; }
+  .rec-buttons { margin-top: 6px; display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  .btn-order {
+    background: var(--teal-dark);
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    padding: 3px 9px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-order:hover { background: #154d66; }
+  .btn-order.signed {
+    background: #1a7a2e;
+    cursor: default;
+  }
+  .btn-askai {
+    background: #5c35a0;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    padding: 3px 9px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-askai:hover { background: #4a2880; }
+  .order-signed-badge {
+    font-size: 10px;
+    color: #1a7a2e;
+    font-weight: 700;
+  }
+
+  /* Feedback section */
+  .feedback-section {
+    padding: 12px 18px;
+    background: #f9fbfc;
+    border-top: 1px solid var(--border);
+  }
+  .feedback-section h4 {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .feedback-buttons { display: flex; gap: 8px; margin-bottom: 8px; }
+  .btn-fb {
+    border: none;
+    border-radius: 4px;
+    padding: 5px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-fb-yes { background: #e8f5e9; color: #1a7a2e; border: 1.5px solid #a5d6a7; }
+  .btn-fb-yes.active { background: #1a7a2e; color: #fff; }
+  .btn-fb-somewhat { background: #fff8e1; color: #b35900; border: 1.5px solid #ffe082; }
+  .btn-fb-somewhat.active { background: #b35900; color: #fff; }
+  .btn-fb-no { background: #f5f5f5; color: #555; border: 1.5px solid #bdbdbd; }
+  .btn-fb-no.active { background: #555; color: #fff; }
+  .feedback-comment textarea {
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 52px;
+    font-family: inherit;
+  }
+  .feedback-saved {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #1a7a2e;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  .checkmark { font-size: 14px; }
+
+  /* Performance Chart */
+  .perf-section {
+    padding: 20px 20px 16px;
+    border-top: 2px solid var(--border);
+    background: #fafcfd;
+  }
+  .perf-section h3 {
+    color: var(--teal-dark);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .h-bar-list { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+  .h-bar-row { display: flex; align-items: center; gap: 12px; }
+  .h-bar-label {
+    width: 210px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #444;
+    text-align: right;
+    line-height: 1.35;
+  }
+  .h-bar-track {
+    flex: 1;
+    background: #e4edf2;
+    border-radius: 5px;
+    height: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .h-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    min-width: 42px;
+    transition: width 0.5s ease;
+  }
+  .h-bar-pct { color: #fff; font-size: 13px; font-weight: 700; }
+  .perf-source {
+    font-size: 11px;
+    color: #888;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* Disclaimer */
+  .disclaimer {
+    padding: 14px 20px;
+    background: #f5f5f5;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* EPIC Order Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .epic-modal {
+    background: #f0f0f0;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .epic-titlebar {
+    background: var(--teal-dark);
+    color: #fff;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 5px 5px 0 0;
+  }
+  .epic-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .epic-patient-bar {
+    background: #e8eaf0;
+    padding: 7px 14px;
+    font-size: 12px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .epic-patient-bar span { color: #333; }
+  .epic-patient-bar strong { color: #1c4e8a; }
+  .epic-body { padding: 16px 18px; background: #fff; }
+  .epic-section-title {
+    font-weight: 700;
+    color: var(--teal-dark);
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .epic-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 18px;
+  }
+  .epic-field label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+  }
+  .epic-field input, .epic-field select, .epic-field textarea {
+    width: 100%;
+    border: 1px solid #b0bec5;
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12.5px;
+    font-family: inherit;
+    background: #f9fafb;
+  }
+  .epic-field textarea { min-height: 50px; resize: vertical; }
+  .epic-field.full { grid-column: 1 / -1; }
+  .epic-check-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #1a7a2e;
+    font-size: 12px;
+    margin: 8px 0 4px;
+    font-weight: 600;
+  }
+  .epic-footer {
+    padding: 12px 18px;
+    background: #f0f0f0;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    border-top: 1px solid #ccc;
+  }
+  .btn-sign-order {
+    background: var(--teal-dark);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 22px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-sign-order:hover { background: #154d66; }
+  .btn-cancel-order {
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 18px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .order-success {
+    text-align: center;
+    padding: 28px;
+    background: #fff;
+  }
+  .order-success .success-icon { font-size: 52px; margin-bottom: 10px; }
+  .order-success h2 { color: #1a7a2e; font-size: 18px; margin-bottom: 8px; }
+  .order-success p { color: #555; font-size: 13px; }
+
+  /* Chat Modal */
+  .chat-modal {
+    background: #fff;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+  }
+  .chat-header {
+    background: #5c35a0;
+    color: #fff;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chat-header h3 { font-size: 14px; }
+  .chat-header p { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+  .chat-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    background: #f7f3ff;
+    min-height: 200px;
+    max-height: 340px;
+  }
+  .chat-msg {
+    margin-bottom: 10px;
+    max-width: 88%;
+  }
+  .chat-msg.ai { align-self: flex-start; }
+  .chat-msg.user { align-self: flex-end; margin-left: auto; }
+  .chat-bubble {
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .chat-bubble.ai {
+    background: #fff;
+    border: 1px solid #d8c9f5;
+    color: #2a2a2a;
+    border-radius: 2px 12px 12px 12px;
+  }
+  .chat-bubble.user {
+    background: #5c35a0;
+    color: #fff;
+    border-radius: 12px 2px 12px 12px;
+  }
+  .chat-typing { color: #888; font-size: 13px; padding: 4px 10px; font-style: italic; }
+  .chat-chips {
+    padding: 8px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: #f0eafa;
+    border-top: 1px solid #e0d4f7;
+  }
+  .chip {
+    background: #fff;
+    border: 1.5px solid #9c72d4;
+    color: #5c35a0;
+    border-radius: 14px;
+    padding: 4px 11px;
+    font-size: 11.5px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .chip:hover { background: #f0e6ff; }
+  .chat-input-row {
+    display: flex;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #fff;
+    border-top: 1px solid #e0d4f7;
+  }
+  .chat-input-row input {
+    flex: 1;
+    border: 1.5px solid #c9b0f0;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    font-family: inherit;
+  }
+  .btn-send {
+    background: #5c35a0;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-send:hover { background: #4a2880; }
+
+  /* Print styles */
+  @media print {
+    .selector-bar, .btn-order, .btn-askai, .feedback-section,
+    .chat-modal, .epic-modal, .modal-overlay { display: none !important; }
+    body { background: #fff; }
+    .app-wrapper { box-shadow: none; max-width: 100%; }
+  }
+
+  @media (max-width: 700px) {
+    .principles-section { grid-template-columns: 1fr; }
+    .drug-cards-grid { grid-template-columns: 1fr 1fr; }
+    .h-bar-label { width: 130px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const ORG_RATE = 37;
+const NATIONAL_RATE = 15;
+const TODAY = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const TODAY_ISO = new Date().toISOString().slice(0,10);
+
+// ─── PROVIDERS ───────────────────────────────────────────────────────────────
+const PROVIDERS = {
+  all: { id: 'all', name: 'All Providers', role: '', gdmtRate: null },
+  h1: { id: 'h1', name: 'Dr. Sarah Chen', role: 'Hospitalist', gdmtRate: 35 },
+  h2: { id: 'h2', name: 'Dr. Marcus Williams', role: 'Hospitalist', gdmtRate: 31 },
+  h3: { id: 'h3', name: 'Dr. Aisha Patel', role: 'Hospitalist', gdmtRate: 44 },
+  c1: { id: 'c1', name: 'Dr. James Rodriguez', role: 'Cardiologist', gdmtRate: 55 },
+  c2: { id: 'c2', name: 'Dr. Emily Thompson', role: 'Cardiologist', gdmtRate: 60 },
+};
+
+// ─── PATIENTS ─────────────────────────────────────────────────────────────────
+const PATIENTS = [
+  {
+    id: 'p1', name: 'James Mitchell', age: 67, ef: 32, mrn: '1042837', hospDay: 3,
+    insurance: 'Medicare', dob: '06/14/1958',
+    vitals: { sbp: 122, hr: 68 },
+    labs: { k: 4.1, egfr: 52, na: 138, bnp: 842 },
+    diagnoses: ['HFrEF', 'HTN', 'T2DM', 'CKD Stage 3a'],
+    allergies: 'NKDA',
+    hospitalist: 'h1', cardiologist: 'c1',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: true, homeMed: false, washout: false, contraindicated: false,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: '24/26 mg BID', targetDose: '97/103 mg BID',
+        oop: '$0 (Medicare cap reached)'
+      },
+      bb: {
+        on: true, homeMed: true, washout: false,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '200 mg QD', targetDose: '200 mg QD', atTarget: true,
+        oop: '$0 (Medicare cap reached)'
+      },
+      mra: {
+        on: true, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: '25 mg QD', targetDose: '50 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      }
+    }
+  },
+  {
+    id: 'p2', name: 'Robert Chen', age: 72, ef: 28, mrn: '2087341', hospDay: 2,
+    insurance: 'Medicare', dob: '03/22/1953',
+    vitals: { sbp: 115, hr: 65 },
+    labs: { k: 5.2, egfr: 27, na: 136, bnp: 1240 },
+    diagnoses: ['HFrEF', 'CKD Stage 3b', 'AFib'],
+    allergies: 'NKDA',
+    hospitalist: 'h2', cardiologist: 'c1',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: false, homeMed: false, washout: false, contraindicated: false,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: null, targetDose: '97/103 mg BID',
+        oop: '$47/mo'
+      },
+      bb: {
+        on: true, homeMed: false,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '12.5 mg QD', targetDose: '200 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      mra: {
+        on: false, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: null, targetDose: '50 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$45/mo'
+      }
+    }
+  },
+  {
+    id: 'p3', name: 'Maria Santos', age: 55, ef: 20, mrn: '3156289', hospDay: 1,
+    insurance: 'Commercial', dob: '09/07/1970',
+    vitals: { sbp: 106, hr: 88 },
+    labs: { k: 4.3, egfr: 68, na: 141, bnp: 1850 },
+    diagnoses: ['New-onset HFrEF', 'HTN'],
+    allergies: 'Penicillin',
+    hospitalist: 'h2', cardiologist: 'c2',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: false, homeMed: false, washout: false, contraindicated: false, acuteDecomp: true,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: null, targetDose: '97/103 mg BID',
+        oop: '$62/mo'
+      },
+      bb: {
+        on: false, homeMed: false, acuteDecomp: true,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: null, targetDose: '200 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      mra: {
+        on: false, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: null, targetDose: '25 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$58/mo'
+      }
+    }
+  },
+  {
+    id: 'p4', name: 'William Johnson', age: 78, ef: 35, mrn: '4203174', hospDay: 5,
+    insurance: 'Medicare', dob: '11/30/1947',
+    vitals: { sbp: 128, hr: 58 },
+    labs: { k: 4.8, egfr: 42, na: 139, bnp: 420 },
+    diagnoses: ['HFrEF', 'HTN', 'CKD Stage 3a', 'COPD'],
+    allergies: 'NKDA',
+    hospitalist: 'h1', cardiologist: 'c2',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: true, homeMed: true, atTarget: true,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: '49/51 mg BID', targetDose: '49/51 mg BID',
+        oop: '$0 (Medicare cap reached)'
+      },
+      bb: {
+        on: true, homeMed: true,
+        drug: 'Carvedilol', brand: 'Coreg',
+        currentDose: '12.5 mg BID', targetDose: '25 mg BID',
+        oop: '$0 (Medicare cap reached)'
+      },
+      mra: {
+        on: true, homeMed: true, atTarget: true,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: '50 mg QD', targetDose: '50 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Empagliflozin', brand: 'Jardiance',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$48/mo'
+      }
+    }
+  },
+  {
+    id: 'p5', name: 'Linda Park', age: 62, ef: 30, mrn: '5019423', hospDay: 4,
+    insurance: 'Medicare', dob: '05/18/1963',
+    vitals: { sbp: 130, hr: 72 },
+    labs: { k: 4.0, egfr: 58, na: 140, bnp: 380 },
+    diagnoses: ['HFrEF', 'HTN', 'T2DM'],
+    allergies: 'NKDA',
+    hospitalist: 'h3', cardiologist: 'c1',
+    quadruple: true,
+    meds: {
+      arni: {
+        on: true, homeMed: true, atTarget: true,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: '97/103 mg BID', targetDose: '97/103 mg BID',
+        oop: '$0 (Medicare cap reached)'
+      },
+      bb: {
+        on: true, homeMed: true, atTarget: true,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '200 mg QD', targetDose: '200 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      mra: {
+        on: true, homeMed: true, atTarget: true,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: '50 mg QD', targetDose: '50 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      sglt2: {
+        on: true, homeMed: true, atTarget: true,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: '10 mg QD', targetDose: '10 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      }
+    }
+  },
+  {
+    id: 'p6', name: 'Thomas Anderson', age: 71, ef: 25, mrn: '6088294', hospDay: 3,
+    insurance: 'Medicaid', dob: '02/14/1954',
+    vitals: { sbp: 96, hr: 78 },
+    labs: { k: 4.4, egfr: 50, na: 135, bnp: 2100 },
+    diagnoses: ['HFrEF', 'Decompensated HF', 'IV Diuretics'],
+    allergies: 'Sulfa drugs',
+    hospitalist: 'h3', cardiologist: 'c2',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: false, homeMed: false, washout: false, contraindicated: false,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: null, targetDose: '97/103 mg BID',
+        oop: '$45/mo'
+      },
+      bb: {
+        on: true, homeMed: false,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '25 mg QD', targetDose: '200 mg QD',
+        oop: '<$10/mo'
+      },
+      mra: {
+        on: false, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: null, targetDose: '25 mg QD',
+        oop: '<$10/mo'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$38/mo'
+      }
+    }
+  },
+  {
+    id: 'p7', name: 'Patricia Kim', age: 64, ef: 28, mrn: '7134521', hospDay: 3,
+    insurance: 'Commercial', dob: '08/03/1961',
+    vitals: { sbp: 138, hr: 70 },
+    labs: { k: 5.3, egfr: 38, na: 137, bnp: 680 },
+    diagnoses: ['HFrEF', 'Hyperkalemia', 'CKD Stage 3a'],
+    allergies: 'NKDA',
+    hospitalist: 'h3', cardiologist: 'c1',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: true, homeMed: false,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: '24/26 mg BID', targetDose: '97/103 mg BID',
+        oop: '$0 (reached cap)'
+      },
+      bb: {
+        on: true, homeMed: true,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '50 mg QD', targetDose: '200 mg QD',
+        oop: '$0 (reached cap)'
+      },
+      mra: {
+        on: false, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: null, targetDose: '50 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$42/mo'
+      }
+    }
+  },
+  {
+    id: 'p8', name: 'David Kim', age: 52, ef: 18, mrn: '8045938', hospDay: 6,
+    insurance: 'Commercial', dob: '07/22/1973',
+    vitals: { sbp: 118, hr: 66 },
+    labs: { k: 4.2, egfr: 74, na: 139, bnp: 1050 },
+    diagnoses: ['HFrEF (severe)', 'Non-ischemic Cardiomyopathy'],
+    allergies: 'NKDA',
+    hospitalist: 'h1', cardiologist: 'c2',
+    quadruple: true,
+    meds: {
+      arni: {
+        on: true, homeMed: false,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: '24/26 mg BID', targetDose: '97/103 mg BID',
+        oop: '$0 (reached cap)'
+      },
+      bb: {
+        on: true, homeMed: true,
+        drug: 'Carvedilol', brand: 'Coreg',
+        currentDose: '12.5 mg BID', targetDose: '25 mg BID',
+        oop: '$0 (reached cap)'
+      },
+      mra: {
+        on: true, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: '12.5 mg QD', targetDose: '50 mg QD',
+        oop: '$0 (reached cap)'
+      },
+      sglt2: {
+        on: true, homeMed: false, atTarget: true,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: '10 mg QD', targetDose: '10 mg QD',
+        oop: '$0 (reached cap)'
+      }
+    }
+  },
+  {
+    id: 'p9', name: 'Sandra Brown', age: 81, ef: 38, mrn: '9023847', hospDay: 2,
+    insurance: 'Medicare', dob: '01/12/1945',
+    vitals: { sbp: 134, hr: 68 },
+    labs: { k: 4.7, egfr: 44, na: 140, bnp: 510 },
+    diagnoses: ['HFrEF', 'HTN', 'Prior Angioedema (ACEi)'],
+    allergies: 'ACE Inhibitors (angioedema)',
+    hospitalist: 'h1', cardiologist: 'c2',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: false, homeMed: false, washout: false, contraindicated: true,
+        contraindicatedReason: 'history of angioedema with ACE inhibitor',
+        contraindicatedAlt: 'Patient is currently on Valsartan 80 mg BID as an ARB alternative.',
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: null, targetDose: '97/103 mg BID',
+        oop: '$0 (Medicare cap reached)'
+      },
+      bb: {
+        on: true, homeMed: true, atTarget: true,
+        drug: 'Bisoprolol', brand: 'Zebeta',
+        currentDose: '10 mg QD', targetDose: '10 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      mra: {
+        on: true, homeMed: true,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: '25 mg QD', targetDose: '50 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$48/mo'
+      }
+    }
+  },
+  {
+    id: 'p10', name: 'Michael Davis', age: 66, ef: 27, mrn: '1008753', hospDay: 2,
+    insurance: 'Commercial', dob: '10/05/1959',
+    vitals: { sbp: 122, hr: 84 },
+    labs: { k: 3.8, egfr: 60, na: 139, bnp: 920 },
+    diagnoses: ['HFrEF', 'HTN', 'T2DM on metformin'],
+    allergies: 'NKDA',
+    hospitalist: 'h2', cardiologist: 'c1',
+    quadruple: false,
+    aceiWashout: true,
+    meds: {
+      arni: {
+        on: false, homeMed: false, washout: true,
+        washoutDay: 3,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: null, targetDose: '24/26 mg BID',
+        oop: '$45/mo'
+      },
+      bb: {
+        on: true, homeMed: true,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '25 mg QD', targetDose: '200 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      mra: {
+        on: false, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: null, targetDose: '50 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$41/mo'
+      }
+    }
+  },
+  {
+    id: 'p11', name: 'Jennifer Torres', age: 56, ef: 15, mrn: '1178293', hospDay: 5,
+    insurance: 'Medicaid', dob: '04/19/1969',
+    vitals: { sbp: 112, hr: 65 },
+    labs: { k: 4.9, egfr: 32, na: 138, bnp: 1420 },
+    diagnoses: ['HFrEF (severe)', 'LBBB', 'Ischemic Cardiomyopathy'],
+    allergies: 'NKDA',
+    hospitalist: 'h3', cardiologist: 'c2',
+    quadruple: false,
+    meds: {
+      arni: {
+        on: true, homeMed: false,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: '24/26 mg BID', targetDose: '49/51 mg BID',
+        oop: '$0 (reached cap)'
+      },
+      bb: {
+        on: true, homeMed: true,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '100 mg QD', targetDose: '200 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      mra: {
+        on: true, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: '12.5 mg QD', targetDose: '50 mg QD',
+        oop: '<$10/mo (generic)'
+      },
+      sglt2: {
+        on: false, homeMed: false,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: null, targetDose: '10 mg QD',
+        oop: '$47/mo'
+      }
+    }
+  },
+  {
+    id: 'p12', name: 'Richard Thompson', age: 68, ef: 30, mrn: '1253784', hospDay: 7,
+    insurance: 'Medicare', dob: '12/03/1957',
+    vitals: { sbp: 126, hr: 72 },
+    labs: { k: 4.1, egfr: 63, na: 140, bnp: 290 },
+    diagnoses: ['HFrEF', 'HTN', 'T2DM', 'OSA'],
+    allergies: 'NKDA',
+    hospitalist: 'h2', cardiologist: 'c1',
+    quadruple: true,
+    meds: {
+      arni: {
+        on: true, homeMed: false,
+        drug: 'Sacubitril/Valsartan', brand: 'Entresto',
+        currentDose: '49/51 mg BID', targetDose: '97/103 mg BID',
+        oop: '$0 (Medicare cap reached)'
+      },
+      bb: {
+        on: true, homeMed: true,
+        drug: 'Metoprolol Succinate', brand: 'Toprol-XL',
+        currentDose: '100 mg QD', targetDose: '200 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      mra: {
+        on: true, homeMed: false,
+        drug: 'Spironolactone', brand: 'Aldactone',
+        currentDose: '25 mg QD', targetDose: '50 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      },
+      sglt2: {
+        on: true, homeMed: false, atTarget: true,
+        drug: 'Dapagliflozin', brand: 'Farxiga',
+        currentDose: '10 mg QD', targetDose: '10 mg QD',
+        oop: '$0 (Medicare cap reached)'
+      }
+    }
+  }
+];
+
+// ─── RECOMMENDATION ENGINE ────────────────────────────────────────────────────
+function getRecommendation(drugKey, patient) {
+  const med = patient.meds[drugKey];
+  const v = patient.vitals;
+  const l = patient.labs;
+
+  if (drugKey === 'arni') {
+    if (med.contraindicated) {
+      return {
+        status: 'Contraindicated',
+        actionText: 'Contraindicated',
+        actionColor: '#c62828',
+        text: `Contraindicated due to ${med.contraindicatedReason}. ARNI use carries a risk of recurrent angioedema in this setting and should not be initiated. ${med.contraindicatedAlt}`
+      };
+    }
+    if (!med.on) {
+      if (med.washout) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - ACEi Washout',
+          actionColor: '#b35900',
+          text: `Currently on ACE inhibitor -- a 36-hour washout period is required before initiating sacubitril/valsartan to avoid risk of angioedema. Last dose of lisinopril should be today. Plan ARNI initiation on Hospital Day ${med.washoutDay}.`
+        };
+      }
+      if (med.acuteDecomp || (patient.hospDay === 1 && l.bnp > 1500)) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Hemodynamically Tenuous',
+          actionColor: '#b35900',
+          text: `Patient is Day 1 with acute decompensated HF (BNP ${l.bnp} pg/mL, SBP ${v.sbp} mmHg). Hold ARNI initiation for 24-48 hours until hemodynamics stabilize. Reassess eligibility once euvolemic and SBP consistently >/= 100 mmHg.`
+        };
+      }
+      if (l.egfr < 30) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - eGFR Below Threshold',
+          actionColor: '#b35900',
+          text: `eGFR ${l.egfr} mL/min is below the 30 mL/min initiation threshold for sacubitril/valsartan. Continued diuresis over the next 24-48 hours may improve renal reserve. Reassess eligibility if eGFR trends toward 30 mL/min.`
+        };
+      }
+      if (l.k >= 5.4) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Hyperkalemia',
+          actionColor: '#b35900',
+          text: `Potassium ${l.k} mEq/L is at or above the safe threshold for ARNI initiation. Optimize potassium with dietary measures or diuresis. Reassess when K falls below 5.4 mEq/L.`
+        };
+      }
+      if (v.sbp < 100) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Low SBP',
+          actionColor: '#b35900',
+          text: `SBP ${v.sbp} mmHg is below the 100 mmHg initiation threshold. Monitor hemodynamics closely and optimize volume status. Reassess initiation when SBP is consistently >/= 100 mmHg.`
+        };
+      }
+      return {
+        status: 'Initiate',
+        actionText: 'Initiate',
+        actionColor: '#1a7a2e',
+        text: `All initiation parameters are favorable (SBP ${v.sbp} mmHg, eGFR ${l.egfr} mL/min, K ${l.k} mEq/L). Initiate sacubitril/valsartan 24/26 mg BID per 2022 AHA/ACC/HFSA Heart Failure Guidelines. Schedule follow-up labs (BMP) within 1-2 weeks of discharge.`
+      };
+    } else {
+      if (med.atTarget) {
+        return {
+          status: 'At Target',
+          actionText: 'At Target - Continue',
+          actionColor: '#555',
+          text: `Currently at target dose (${med.currentDose}). All titration parameters remain favorable (SBP ${v.sbp} mmHg, eGFR ${l.egfr} mL/min, K ${l.k} mEq/L). Continue current regimen and confirm tolerance at discharge.`
+        };
+      }
+      if (v.sbp < 100) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold Uptitration - Low SBP',
+          actionColor: '#b35900',
+          text: `SBP ${v.sbp} mmHg is below the safe threshold for uptitration. Continue current dose of ${med.currentDose} and reassess hemodynamics. Advance dose when SBP is consistently >/= 100 mmHg.`
+        };
+      }
+      if (l.egfr < 30) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold Uptitration',
+          actionColor: '#b35900',
+          text: `eGFR ${l.egfr} mL/min warrants caution with dose advancement. Continue current dose of ${med.currentDose}. Reassess for uptitration at outpatient follow-up once renal function stabilizes.`
+        };
+      }
+      return {
+        status: 'Uptitrate',
+        actionText: 'Uptitrate',
+        actionColor: '#0d47a1',
+        text: `Titration parameters are favorable (SBP ${v.sbp} mmHg, eGFR ${l.egfr} mL/min, K ${l.k} mEq/L). Uptitrate sacubitril/valsartan from ${med.currentDose} toward target ${med.targetDose} per 2022 ACC/AHA guidelines. Schedule follow-up labs (BMP) within 1-2 weeks.`
+      };
+    }
+  }
+
+  if (drugKey === 'bb') {
+    if (!med.on) {
+      if (med.acuteDecomp || (patient.hospDay <= 1 && l.bnp > 1500)) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Acute Decompensation',
+          actionColor: '#b35900',
+          text: `Patient is in the setting of acute decompensation (BNP ${l.bnp} pg/mL) -- beta-blockers should not be initiated until euvolemic and hemodynamically stable. Plan initiation when diuresis is complete and SBP >/= 100 mmHg consistently. Target: carvedilol or metoprolol succinate.`
+        };
+      }
+      if (v.hr < 60) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Bradycardia',
+          actionColor: '#b35900',
+          text: `HR ${v.hr} bpm is below the safe threshold for beta-blocker initiation. Monitor heart rate trend over the next 24 hours. Initiate at low dose once HR is consistently above 60 bpm.`
+        };
+      }
+      if (v.sbp < 100) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Low SBP',
+          actionColor: '#b35900',
+          text: `SBP ${v.sbp} mmHg is below the 100 mmHg threshold for safe beta-blocker initiation. Optimize volume status and hemodynamics. Reassess when SBP is consistently >/= 100 mmHg.`
+        };
+      }
+      return {
+        status: 'Initiate',
+        actionText: 'Initiate',
+        actionColor: '#1a7a2e',
+        text: `Hemodynamics are stable for beta-blocker initiation (SBP ${v.sbp} mmHg, HR ${v.hr} bpm). Initiate metoprolol succinate 12.5-25 mg QD and uptitrate as tolerated. Beta-blocker therapy reduces all-cause mortality by 34% in HFrEF (MERIT-HF, COPERNICUS, CIBIS-II trials).`
+      };
+    } else {
+      if (med.atTarget) {
+        return {
+          status: 'At Target',
+          actionText: 'At Target - Continue',
+          actionColor: '#555',
+          text: `Currently at target dose (${med.currentDose}). Heart rate ${v.hr} bpm and SBP ${v.sbp} mmHg are well-tolerated. Continue current regimen per 2022 AHA/ACC/HFSA guidelines.`
+        };
+      }
+      if (v.hr <= 60) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold Uptitration - Bradycardia',
+          actionColor: '#b35900',
+          text: `HR ${v.hr} bpm is at the lower safety boundary for beta-blocker uptitration. Do not advance dose until HR is consistently above 60 bpm. Continue current dose of ${med.currentDose} and monitor.`
+        };
+      }
+      if (v.sbp <= 100) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold Uptitration - Low SBP',
+          actionColor: '#b35900',
+          text: `SBP ${v.sbp} mmHg limits safe uptitration at this time. Continue current dose of ${med.currentDose}. Reassess once blood pressure stabilizes above 100 mmHg.`
+        };
+      }
+      return {
+        status: 'Uptitrate',
+        actionText: 'Uptitrate',
+        actionColor: '#0d47a1',
+        text: `Hemodynamics support beta-blocker uptitration (SBP ${v.sbp} mmHg, HR ${v.hr} bpm). Advance from ${med.currentDose} toward target ${med.targetDose} per evidence-based titration schedule. Double dose every 2 weeks as tolerated (MERIT-HF protocol).`
+      };
+    }
+  }
+
+  if (drugKey === 'mra') {
+    if (!med.on) {
+      if (l.k >= 5.0) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Hyperkalemia',
+          actionColor: '#b35900',
+          text: `Potassium ${l.k} mEq/L is at or above the 5.0 mEq/L threshold for MRA initiation. Repeat K in 24-48 hours. Initiate spironolactone 12.5-25 mg QD if K trends below 5.0 mEq/L -- note that SGLT2i initiation may help lower K and enable MRA use.`
+        };
+      }
+      if (l.egfr < 30) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - eGFR Below Threshold',
+          actionColor: '#b35900',
+          text: `eGFR ${l.egfr} mL/min is below the 30 mL/min safety threshold for MRA initiation. Risk of hyperkalemia is significantly elevated. Reassess eligibility if renal function improves with diuresis.`
+        };
+      }
+      if (v.sbp < 100) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - Low SBP',
+          actionColor: '#b35900',
+          text: `SBP ${v.sbp} mmHg is below the threshold for safe MRA initiation. Stabilize hemodynamics first. Initiate spironolactone 12.5-25 mg QD once SBP is consistently >/= 100 mmHg and K < 5.0 mEq/L.`
+        };
+      }
+      return {
+        status: 'Initiate',
+        actionText: 'Initiate',
+        actionColor: '#1a7a2e',
+        text: `Parameters support MRA initiation (K ${l.k} mEq/L, eGFR ${l.egfr} mL/min, SBP ${v.sbp} mmHg). Initiate spironolactone 12.5-25 mg QD per 2022 AHA/ACC/HFSA guidelines. Monitor BMP at 1-2 weeks post-initiation; target dose 50 mg QD (RALES, EMPHASIS-HF trials: 30% mortality reduction).`
+      };
+    } else {
+      if (l.k >= 5.0) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold Uptitration - Hyperkalemia',
+          actionColor: '#b35900',
+          text: `Potassium ${l.k} mEq/L is at or above the 5.0 mEq/L threshold for MRA uptitration. Continue current dose of ${med.currentDose} and repeat K in 24-48 hours. Do not advance until K is confirmed below 5.0 mEq/L.`
+        };
+      }
+      if (med.atTarget) {
+        return {
+          status: 'At Target',
+          actionText: 'At Target - Continue',
+          actionColor: '#555',
+          text: `Currently at target dose (${med.currentDose}). K ${l.k} mEq/L and eGFR ${l.egfr} mL/min are within acceptable range. Continue current regimen; monitor BMP every 3-6 months (RALES, EMPHASIS-HF).`
+        };
+      }
+      if (l.k >= 4.8) {
+        return {
+          status: 'Continue',
+          actionText: 'Continue - Monitor K Closely',
+          actionColor: '#555',
+          text: `K ${l.k} mEq/L is approaching the uptitration caution threshold. Continue current dose of ${med.currentDose} for now. Recheck K in 24-48 hours -- if below 4.8 mEq/L, advance to target ${med.targetDose} (RALES, EMPHASIS-HF).`
+        };
+      }
+      return {
+        status: 'Uptitrate',
+        actionText: 'Uptitrate',
+        actionColor: '#0d47a1',
+        text: `Parameters strongly support uptitration (K ${l.k} mEq/L, eGFR ${l.egfr} mL/min). Advance spironolactone from ${med.currentDose} to ${med.targetDose} per 2022 guidelines. Recheck BMP at 1-2 weeks (RALES: 30% all-cause mortality reduction at target dose).`
+      };
+    }
+  }
+
+  if (drugKey === 'sglt2') {
+    if (!med.on) {
+      if (l.egfr < 25) {
+        return {
+          status: 'Hold',
+          actionText: 'Hold - eGFR Below Threshold',
+          actionColor: '#b35900',
+          text: `eGFR ${l.egfr} mL/min is below the 25 mL/min minimum threshold for SGLT2 inhibitor initiation. Monitor renal function and reassess if eGFR improves with diuresis. SGLT2i has no significant BP-lowering effect in HFrEF.`
+        };
+      }
+      return {
+        status: 'Initiate',
+        actionText: 'Initiate',
+        actionColor: '#1a7a2e',
+        text: `No contraindications identified (eGFR ${l.egfr} mL/min is above the 25 mL/min threshold). Initiate dapagliflozin 10 mg QD today -- no dose titration required. The DAPA-HF trial demonstrated a 26% reduction in worsening HF or CV death, and the EMPULSE trial specifically supports in-hospital initiation.`
+      };
+    } else {
+      return {
+        status: 'At Target',
+        actionText: 'At Target - Continue',
+        actionColor: '#555',
+        text: `Currently at fixed target dose (${med.currentDose}). No dose titration required for SGLT2 inhibitors. Continue dapagliflozin 10 mg QD; confirm prescription at discharge (DAPA-HF, EMPEROR-Reduced).`
+      };
+    }
+  }
+
+  return { status: 'Continue', actionText: 'Continue', actionColor: '#555', text: 'Continue current therapy and reassess at follow-up.' };
+}
+
+// ─── CHAT RESPONSE ENGINE ─────────────────────────────────────────────────────
+function getChatResponse(drugKey, questionText, patient) {
+  const q = questionText.toLowerCase();
+  const intro = `For ${patient.name} specifically (K ${patient.labs.k} mEq/L, eGFR ${patient.labs.egfr} mL/min, SBP ${patient.vitals.sbp} mmHg): `;
+  const med = patient.meds[drugKey];
+  const drugNames = { arni: 'Sacubitril/Valsartan (Entresto)', bb: 'Beta-Blocker', mra: 'Spironolactone/MRA', sglt2: 'SGLT2 Inhibitor (Dapagliflozin)' };
+  const dn = drugNames[drugKey];
+
+  const evidence = {
+    arni: `${intro}The landmark PARADIGM-HF trial (n=8,399) showed sacubitril/valsartan reduced CV death or HF hospitalization by 20% vs. enalapril (HR 0.80, p<0.001) with NNT of 21 over 27 months. The 2022 AHA/ACC/HFSA guidelines give it a Class I, Level A recommendation for HFrEF with EF </= 40%. In-hospital initiation is supported by the PIONEER-HF trial, which showed safe initiation post-stabilization with significant NT-proBNP reduction.`,
+    bb: `${intro}Three landmark RCTs established beta-blockers in HFrEF: MERIT-HF (metoprolol succinate, 34% all-cause mortality reduction), COPERNICUS (carvedilol, 35% mortality reduction in severe HF), and CIBIS-II (bisoprolol, 34% reduction). Combined NNT is approximately 26 to prevent one death per year. Class I, Level A per 2022 AHA/ACC/HFSA guidelines. Only carvedilol, metoprolol succinate, and bisoprolol have proven mortality benefit.`,
+    mra: `${intro}RALES trial (spironolactone, n=1,663): 30% reduction in all-cause mortality in Class III-IV HFrEF (NNT=9 over 2 years). EMPHASIS-HF (eplerenone, n=2,737): 37% reduction in CV death or HF hospitalization in Class II HF. Both trials support Class I, Level A recommendation. Key eligibility: K < 5.0 mEq/L, eGFR > 30 mL/min, and no history of severe hyperkalemia.`,
+    sglt2: `${intro}DAPA-HF trial (dapagliflozin, n=4,744): 26% reduction in worsening HF or CV death vs. placebo (HR 0.74, NNT=21). EMPEROR-Reduced (empagliflozin): 25% reduction in CV death or HF hospitalization. EMPULSE trial specifically validated in-hospital initiation -- dapagliflozin initiated during HF admission was safe and reduced the combined endpoint of death, HF events, and symptom burden. Class I recommendation per 2022 guidelines regardless of diabetes status.`
+  };
+
+  const monitoring = {
+    arni: `${intro}Monitor BMP (K, creatinine) at 1-2 weeks after initiation or dose change, then every 3 months for the first year. Watch for symptomatic hypotension (SBP < 100 mmHg), worsening renal function (>30% rise in creatinine), and hyperkalemia (K > 5.5 mEq/L). Angioedema risk is low but monitor especially in the first 30 days. SBP ${patient.vitals.sbp} mmHg and eGFR ${patient.labs.egfr} mL/min are currently in acceptable range.`,
+    bb: `${intro}Monitor HR and blood pressure with each dose increase. Target HR: 60-70 bpm at rest. Check for signs of fluid retention (weight, edema) as beta-blockers can unmask decompensation if initiated too early. Current HR ${patient.vitals.hr} bpm and SBP ${patient.vitals.sbp} mmHg. Avoid abrupt discontinuation. Titrate slowly -- double dose every 2 weeks as tolerated.`,
+    mra: `${intro}BMP at 1 week, 4 weeks, and every 3-6 months thereafter. Critical: K ${patient.labs.k} mEq/L currently -- threshold for initiation is K < 5.0 mEq/L, for continuation K < 5.5 mEq/L. eGFR ${patient.labs.egfr} mL/min -- hold if eGFR drops below 30 mL/min. Watch for signs of gynecomastia with spironolactone (switch to eplerenone if occurs). Avoid NSAIDs which can precipitate hyperkalemia.`,
+    sglt2: `${intro}No routine electrolyte monitoring required specifically for SGLT2i in HFrEF. Watch for genitourinary infections, diabetic ketoacidosis (rare in T2DM, very rare without diabetes), and euglycemic DKA in fasting patients. Current eGFR ${patient.labs.egfr} mL/min is above the 25 mL/min threshold. Can be continued as long as eGFR remains > 25 mL/min. Check for volume depletion signs if used with aggressive diuresis.`
+  };
+
+  const dosing = {
+    arni: `${intro}Starting dose: 24/26 mg BID (in ARNI-naive patients) or 49/51 mg BID (if transitioning from low-dose ACEi/ARB). Target: 97/103 mg BID. Titrate: double dose every 2-4 weeks as tolerated. Require 36-hour washout from ACEi before initiation. Current status: ${med.on ? `on ${med.currentDose}, target ${med.targetDose}` : 'not yet initiated'}. Take twice daily, with or without food.`,
+    bb: `${intro}Start at low dose: metoprolol succinate 12.5-25 mg QD, carvedilol 3.125 mg BID, or bisoprolol 1.25 mg QD. Double dose every 2 weeks as tolerated. Target doses: metoprolol succinate 200 mg QD, carvedilol 25 mg BID (50 mg BID if >85 kg), bisoprolol 10 mg QD. Current status: ${med.on ? `on ${med.currentDose}, target ${med.targetDose}` : 'not yet initiated'}. Take with meals to reduce orthostatic effects.`,
+    mra: `${intro}Start: spironolactone 12.5-25 mg QD or eplerenone 25 mg QD. Target: spironolactone 50 mg QD, eplerenone 50 mg QD. Titrate: increase after 4 weeks if K < 5.0 mEq/L and eGFR > 30 mL/min. Current status: ${med.on ? `on ${med.currentDose}, target ${med.targetDose}` : 'not yet initiated'}. Current K ${patient.labs.k} mEq/L and eGFR ${patient.labs.egfr} mL/min. Take in the morning to avoid nocturia.`,
+    sglt2: `${intro}Fixed dose: dapagliflozin 10 mg QD or empagliflozin 10-25 mg QD. No titration required -- this is the full therapeutic dose. Take in the morning, with or without food. Can be initiated in hospital per EMPULSE trial data. Current status: ${med.on ? `on ${med.currentDose} (at target)` : 'not yet initiated'}. eGFR ${patient.labs.egfr} mL/min is above the 25 mL/min minimum threshold.`
+  };
+
+  const alternatives = {
+    arni: `${intro}If ARNI is contraindicated (e.g., history of angioedema) or not tolerated, use ARB (valsartan, losartan, candesartan) as a Class I alternative. If ARB also not tolerated, ACEi (lisinopril, enalapril) is acceptable. Hydralazine/nitrate combination is Class I for Black patients who cannot tolerate RAAS therapy. Vericiguat (Class IIb) is an emerging option for high-risk patients with worsening HF.`,
+    bb: `${intro}Only three beta-blockers have proven mortality benefit: carvedilol, metoprolol succinate, and bisoprolol. If one is not tolerated, try another agent. If all are contraindicated (severe bradycardia, high-degree AV block, severe bronchospastic asthma), ivabradine can be considered for rate control in sinus rhythm with HR > 70 bpm (Class IIa per 2022 guidelines).`,
+    mra: `${intro}If spironolactone causes gynecomastia or breast tenderness, switch to eplerenone (more selective). If both MRAs are not tolerated due to persistent hyperkalemia, consider adding patiromer (potassium binder) to enable MRA use -- a strategy supported by recent data (DIAMOND trial). SGLT2i may lower potassium levels, enabling MRA initiation in borderline cases.`,
+    sglt2: `${intro}Empagliflozin (Jardiance) 10 mg QD is an equivalent alternative to dapagliflozin (EMPEROR-Reduced trial). Sotagliflozin (Inpefa) is another option approved for HF. If eGFR drops below 25 mL/min, discontinue. For patients who cannot afford brand-name SGLT2i, patient assistance programs and manufacturer coupons are available. Generic formulations are not yet widely available.`
+  };
+
+  const rationale = {
+    arni: `${intro}Sacubitril/valsartan works through dual mechanism: the valsartan component blocks the RAAS (angiotensin II receptor blockade), while sacubitril inhibits neprilysin, preventing degradation of beneficial natriuretic peptides (BNP, ANP) and bradykinin. This leads to vasodilation, natriuresis, and anti-fibrotic effects. With EF ${patient.ef}%, this patient has significant systolic dysfunction where PARADIGM-HF showed greatest absolute benefit.`,
+    bb: `${intro}In HFrEF, chronic sympathetic activation causes maladaptive remodeling (beta-1 receptor downregulation, cardiac fibrosis, apoptosis). Beta-blockers interrupt this cycle: they reduce heart rate (improving diastolic filling time), lower myocardial oxygen demand, and reverse remodeling over 3-6 months (EF improvement of 5-10% expected). With EF ${patient.ef}% and HR ${patient.vitals.hr} bpm, benefits are significant.`,
+    mra: `${intro}Aldosterone causes sodium retention, potassium wasting, and myocardial/vascular fibrosis. MRA blockade reduces these effects independently of RAAS blockade. In RALES, benefits were additive to ACEi therapy. With EF ${patient.ef}% and K ${patient.labs.k} mEq/L (below threshold), the risk-benefit ratio strongly favors initiation. Spironolactone also reduces hospitalizations by ~35%.`,
+    sglt2: `${intro}SGLT2 inhibitors improve HF outcomes through multiple mechanisms beyond glucose lowering: osmotic diuresis (reduces preload), natriuresis, reduction in cardiac inflammation and fibrosis, mitochondrial cardioprotection, and possibly erythropoiesis stimulation. With EF ${patient.ef}%, the DAPA-HF NNT was only 21 -- this is one of the strongest effect sizes seen in HF pharmacotherapy.`
+  };
+
+  const cost = {
+    arni: `${intro}For ${patient.insurance} coverage: ${med.oop}. Novartis EntrustRx patient assistance program available for uninsured/underinsured patients. Most Medicare Part D plans cover Entresto, often in Tier 3-4. Discuss with case manager or pharmacist for prior authorization support if needed.`,
+    bb: `${intro}For ${patient.insurance} coverage: ${med.oop}. Generic metoprolol succinate, carvedilol, and bisoprolol are widely available for under $10/month at most pharmacies. No prior authorization typically required. GoodRx pricing: carvedilol 25 mg x60 tabs approximately $8-12.`,
+    mra: `${intro}For ${patient.insurance} coverage: ${med.oop}. Generic spironolactone is inexpensive (approximately $8-15/month). Eplerenone is more expensive (approximately $150-200/month without coverage). Prior authorization is rarely needed. Patient assistance via Pfizer RxPathways available for eplerenone.`,
+    sglt2: `${intro}For ${patient.insurance} coverage: ${med.oop}. AstraZeneca offers the Farxiga Savings Card (up to $0 copay for commercially insured). Boehringer Ingelheim offers the Jardiance Savings Program. Medicare patients: Inflation Reduction Act capped out-of-pocket costs. Patient assistance programs available for low-income patients.`
+  };
+
+  if (q.includes('evidence') || q.includes('trial') || q.includes('study') || q.includes('guideline') || q.includes('data')) {
+    return evidence[drugKey] || `The evidence base for ${dn} in HFrEF is strong, with Class I guideline recommendations.`;
+  }
+  if (q.includes('monitor') || q.includes('follow') || q.includes('safety') || q.includes('watch') || q.includes('lab')) {
+    return monitoring[drugKey] || `Monitor labs and clinical status closely after initiating ${dn}.`;
+  }
+  if (q.includes('dose') || q.includes('titrat') || q.includes('uptitrat') || q.includes('how much') || q.includes('start')) {
+    return dosing[drugKey] || `${dn} has a well-defined titration schedule per guidelines.`;
+  }
+  if (q.includes('altern') || q.includes('instead') || q.includes('other option') || q.includes('cannot take') || q.includes('intolerant')) {
+    return alternatives[drugKey] || `Several alternatives exist if ${dn} is not tolerated.`;
+  }
+  if (q.includes('why') || q.includes('rationale') || q.includes('reason') || q.includes('benefit') || q.includes('recommend')) {
+    return rationale[drugKey] || `${dn} is recommended due to robust evidence for mortality and hospitalization reduction in HFrEF.`;
+  }
+  if (q.includes('cost') || q.includes('insurance') || q.includes('coverage') || q.includes('afford') || q.includes('pay')) {
+    return cost[drugKey] || `Cost and coverage information is available through the pharmacy or case management team.`;
+  }
+  return `${intro}${dn} is a cornerstone of guideline-directed medical therapy for HFrEF with EF ${patient.ef}%. When used as part of quadruple therapy (ARNI + beta-blocker + MRA + SGLT2i), patients experience a 73% relative reduction in 2-year mortality compared to no therapy. Ask me about the evidence, dosing, monitoring, alternatives, or cost for this medication.`;
+}
+
+// ─── HELPER COMPONENTS ────────────────────────────────────────────────────────
+function ParamDot({ value, green, red, yellow }) {
+  let cls = 'dot dot-green';
+  if (red) cls = 'dot dot-red';
+  else if (yellow) cls = 'dot dot-yellow';
+  return <span className={cls}></span>;
+}
+
+function getParamDotColor(type, val) {
+  // Returns: 'green' | 'yellow' | 'red'
+  if (type === 'sbp_arni' || type === 'sbp_bb' || type === 'sbp_mra') {
+    if (val >= 110) return 'green';
+    if (val >= 100) return 'yellow';
+    return 'red';
+  }
+  if (type === 'hr') {
+    if (val > 65) return 'green';
+    if (val >= 60) return 'yellow';
+    return 'red';
+  }
+  if (type === 'k_arni') {
+    if (val < 5.0) return 'green';
+    if (val < 5.4) return 'yellow';
+    return 'red';
+  }
+  if (type === 'k_mra') {
+    if (val < 4.5) return 'green';
+    if (val < 5.0) return 'yellow';
+    return 'red';
+  }
+  if (type === 'egfr_arni' || type === 'egfr_mra') {
+    if (val >= 50) return 'green';
+    if (val >= 30) return 'yellow';
+    return 'red';
+  }
+  if (type === 'egfr_sglt2') {
+    if (val >= 50) return 'green';
+    if (val >= 25) return 'yellow';
+    return 'red';
+  }
+  return 'green';
+}
+
+function DotLabel({ color, label, value }) {
+  const cls = color === 'green' ? 'dot dot-green' : color === 'red' ? 'dot dot-red' : 'dot dot-yellow';
+  return (
+    <li className="param-item">
+      <span className={cls}></span>
+      <span>{label}: <strong>{value}</strong></span>
+    </li>
+  );
+}
+
+function ParamsList({ drugKey, patient }) {
+  const v = patient.vitals;
+  const l = patient.labs;
+  const items = [];
+
+  if (drugKey === 'arni') {
+    items.push({ color: getParamDotColor('sbp_arni', v.sbp), label: 'SBP', value: `${v.sbp} mmHg` });
+    items.push({ color: getParamDotColor('egfr_arni', l.egfr), label: 'eGFR', value: `${l.egfr} mL/min` });
+    items.push({ color: getParamDotColor('k_arni', l.k), label: 'K', value: `${l.k} mEq/L` });
+  } else if (drugKey === 'bb') {
+    items.push({ color: getParamDotColor('sbp_bb', v.sbp), label: 'SBP', value: `${v.sbp} mmHg` });
+    items.push({ color: getParamDotColor('hr', v.hr), label: 'HR', value: `${v.hr} bpm` });
+  } else if (drugKey === 'mra') {
+    items.push({ color: getParamDotColor('sbp_mra', v.sbp), label: 'SBP', value: `${v.sbp} mmHg` });
+    items.push({ color: getParamDotColor('egfr_mra', l.egfr), label: 'eGFR', value: `${l.egfr} mL/min` });
+    items.push({ color: getParamDotColor('k_mra', l.k), label: 'K', value: `${l.k} mEq/L` });
+  } else if (drugKey === 'sglt2') {
+    items.push({ color: getParamDotColor('egfr_sglt2', l.egfr), label: 'eGFR', value: `${l.egfr} mL/min` });
+  }
+
+  return (
+    <ul className="param-list">
+      {items.map((item, i) => (
+        <DotLabel key={i} color={item.color} label={item.label} value={item.value} />
+      ))}
+    </ul>
+  );
+}
+
+// ─── ORDER MODAL ─────────────────────────────────────────────────────────────
+// ─── DOSE OPTIONS ────────────────────────────────────────────────────────────
+const DOSE_OPTIONS = {
+  arni: ['24/26 mg BID', '49/51 mg BID', '97/103 mg BID'],
+  bb: {
+    'Metoprolol Succinate': ['12.5 mg QD', '25 mg QD', '50 mg QD', '100 mg QD', '200 mg QD'],
+    'Carvedilol':           ['3.125 mg BID', '6.25 mg BID', '12.5 mg BID', '25 mg BID'],
+    'Bisoprolol':           ['1.25 mg QD', '2.5 mg QD', '5 mg QD', '10 mg QD'],
+  },
+  mra: {
+    'Spironolactone': ['12.5 mg QD', '25 mg QD', '50 mg QD'],
+    'Eplerenone':     ['25 mg QD', '50 mg QD'],
+  },
+  sglt2: ['10 mg QD'],
+};
+
+function getDoseOptions(drugKey, med) {
+  if (drugKey === 'arni') return DOSE_OPTIONS.arni;
+  if (drugKey === 'sglt2') return DOSE_OPTIONS.sglt2;
+  if (drugKey === 'bb') {
+    const name = med.drug || '';
+    if (name.includes('Carvedilol')) return DOSE_OPTIONS.bb['Carvedilol'];
+    if (name.includes('Bisoprolol')) return DOSE_OPTIONS.bb['Bisoprolol'];
+    return DOSE_OPTIONS.bb['Metoprolol Succinate'];
+  }
+  if (drugKey === 'mra') {
+    const name = med.drug || '';
+    if (name.includes('Eplerenone')) return DOSE_OPTIONS.mra['Eplerenone'];
+    return DOSE_OPTIONS.mra['Spironolactone'];
+  }
+  return [med.currentDose || med.targetDose || '10 mg QD'];
+}
+
+function OrderModal({ patient, drugKey, onClose, onSigned }) {
+  const [signed, setSigned] = useState(false);
+  const med = patient.meds[drugKey];
+  const rec = getRecommendation(drugKey, patient);
+  const prescriber = PROVIDERS[patient.cardiologist];
+
+  const drugDisplayNames = {
+    arni: `Sacubitril/Valsartan (Entresto) tablet`,
+    bb: med.drug + ' tablet',
+    mra: med.drug + ' (Aldactone) tablet',
+    sglt2: med.drug + ' (' + med.brand + ') 10 mg tablet'
+  };
+
+  const defaultDrug = drugDisplayNames[drugKey];
+  const doseOpts = getDoseOptions(drugKey, med);
+  const preferredDose = med.on ? med.currentDose : med.targetDose;
+  const defaultDose = doseOpts.includes(preferredDose) ? preferredDose : doseOpts[doseOpts.length - 1];
+  const freqMap = { arni: 'Twice daily (BID)', bb: defaultDose && defaultDose.includes('BID') ? 'Twice daily (BID)' : 'Once daily (QD)', mra: 'Once daily (QD)', sglt2: 'Once daily (QD)' };
+
+  const [form, setForm] = useState({
+    drug: defaultDrug,
+    dose: defaultDose || '10 mg',
+    route: 'Oral',
+    freq: freqMap[drugKey] || 'Once daily (QD)',
+    start: TODAY_ISO,
+    duration: 'Through discharge',
+    orderClass: 'Discharge Order',
+    prescriber: prescriber ? prescriber.name : '',
+    instructions: ''
+  });
+
+  function handleSign() {
+    setSigned(true);
+    setTimeout(() => {
+      onSigned();
+      onClose();
+    }, 3000);
+  }
+
+  return (
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="epic-modal">
+        <div className="epic-titlebar">
+          <span>New Medication Order</span>
+          <button className="epic-close" onClick={onClose}>x</button>
+        </div>
+        <div className="epic-patient-bar">
+          <span><strong>Patient:</strong> {patient.name}</span>
+          <span><strong>MRN:</strong> {patient.mrn}</span>
+          <span><strong>DOB:</strong> {patient.dob}</span>
+          <span><strong>Allergies:</strong> <span style={{ color: patient.allergies === 'NKDA' ? '#1a7a2e' : '#c62828' }}>{patient.allergies}</span></span>
+        </div>
+        {!signed ? (
+          <>
+            <div className="epic-body">
+              <div className="epic-section-title">Order Details</div>
+              <div className="epic-form-grid">
+                <div className="epic-field full">
+                  <label>Drug</label>
+                  <input value={form.drug} onChange={e => setForm({ ...form, drug: e.target.value })} />
+                </div>
+                <div className="epic-field">
+                  <label>Dose / Regimen</label>
+                  <select value={form.dose} onChange={e => {
+                    const d = e.target.value;
+                    const freq = d.includes('BID') ? 'Twice daily (BID)' : 'Once daily (QD)';
+                    setForm({ ...form, dose: d, freq });
+                  }}>
+                    {getDoseOptions(drugKey, med).map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div className="epic-field">
+                  <label>Route</label>
+                  <select value={form.route} onChange={e => setForm({ ...form, route: e.target.value })}>
+                    <option>Oral</option>
+                    <option>IV</option>
+                    <option>Sublingual</option>
+                  </select>
+                </div>
+                <div className="epic-field">
+                  <label>Frequency</label>
+                  <input value={form.freq} onChange={e => setForm({ ...form, freq: e.target.value })} />
+                </div>
+                <div className="epic-field">
+                  <label>Start Date</label>
+                  <input type="date" value={form.start} onChange={e => setForm({ ...form, start: e.target.value })} />
+                </div>
+                <div className="epic-field">
+                  <label>Duration</label>
+                  <input value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} />
+                </div>
+                <div className="epic-field">
+                  <label>Order Class</label>
+                  <select value={form.orderClass} onChange={e => setForm({ ...form, orderClass: e.target.value })}>
+                    <option>Discharge Order</option>
+                    <option>Inpatient Order</option>
+                    <option>PRN Order</option>
+                  </select>
+                </div>
+                <div className="epic-field">
+                  <label>Prescriber</label>
+                  <select value={form.prescriber} onChange={e => setForm({ ...form, prescriber: e.target.value })}>
+                    {Object.values(PROVIDERS).filter(p => p.id !== 'all').map(p => (
+                      <option key={p.id} value={p.name}>{p.name} ({p.role})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="epic-field full">
+                  <label>Special Instructions</label>
+                  <textarea value={form.instructions} onChange={e => setForm({ ...form, instructions: e.target.value })} placeholder="Enter any special instructions..." />
+                </div>
+              </div>
+              <div className="epic-check-row">
+                <span style={{ fontSize: 16 }}>&#10003;</span>
+                <span>No clinically significant drug interactions identified</span>
+              </div>
+              <div className="epic-check-row">
+                <span style={{ fontSize: 16 }}>&#10003;</span>
+                <span>No known allergy conflicts</span>
+              </div>
+            </div>
+            <div className="epic-footer">
+              <button className="btn-cancel-order" onClick={onClose}>Cancel</button>
+              <button className="btn-sign-order" onClick={handleSign}>Sign Order</button>
+            </div>
+          </>
+        ) : (
+          <div className="order-success">
+            <div className="success-icon">&#10003;</div>
+            <h2>Order Signed Successfully</h2>
+            <p><strong>{form.drug}</strong></p>
+            <p>{form.dose} | {form.route} | {form.freq}</p>
+            <p>Prescriber: {form.prescriber}</p>
+            <p style={{ marginTop: 10, color: '#888', fontSize: 12 }}>Auto-closing in 3 seconds...</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── CHAT MODAL ───────────────────────────────────────────────────────────────
+function ChatModal({ patient, drugKey, onClose }) {
+  const drugLabels = { arni: 'Sacubitril/Valsartan', bb: 'Beta-Blocker', mra: 'Spironolactone (MRA)', sglt2: 'SGLT2 Inhibitor' };
+  const [messages, setMessages] = useState([
+    {
+      role: 'ai',
+      text: `I'm here to help explain the GDMT recommendations for ${patient.name}. You can ask me about the evidence, dosing, monitoring, or alternatives for ${drugLabels[drugKey]}.`
+    }
+  ]);
+  const [inputVal, setInputVal] = useState('');
+  const [typing, setTyping] = useState(false);
+  const bottomRef = useRef(null);
+
+  const chips = ["What's the evidence?", "How do I monitor this?", "What's the dosing schedule?", "Are there alternatives?", "Why is this recommended?"];
+
+  useEffect(() => {
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, typing]);
+
+  function sendMessage(text) {
+    if (!text.trim()) return;
+    const userMsg = { role: 'user', text: text.trim() };
+    setMessages(prev => [...prev, userMsg]);
+    setInputVal('');
+    setTyping(true);
+    setTimeout(() => {
+      const response = getChatResponse(drugKey, text, patient);
+      setTyping(false);
+      setMessages(prev => [...prev, { role: 'ai', text: response }]);
+    }, 800);
+  }
+
+  return (
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="chat-modal">
+        <div className="chat-header">
+          <div>
+            <h3>AI Clinical Assistant - {drugLabels[drugKey]}</h3>
+            <p>Patient: {patient.name} | EF {patient.ef}% | Hospital Day {patient.hospDay}</p>
+          </div>
+          <button className="chat-close" onClick={onClose}>x</button>
+        </div>
+        <div className="chat-messages">
+          {messages.map((msg, i) => (
+            <div key={i} className={`chat-msg ${msg.role}`}>
+              <div className={`chat-bubble ${msg.role}`}>{msg.text}</div>
+            </div>
+          ))}
+          {typing && <div className="chat-typing">AI is typing...</div>}
+          <div ref={bottomRef} />
+        </div>
+        <div className="chat-chips">
+          {chips.map((c, i) => (
+            <button key={i} className="chip" onClick={() => sendMessage(c)}>{c}</button>
+          ))}
+        </div>
+        <div className="chat-input-row">
+          <input
+            value={inputVal}
+            onChange={e => setInputVal(e.target.value)}
+            placeholder="Ask a clinical question..."
+            onKeyDown={e => { if (e.key === 'Enter') sendMessage(inputVal); }}
+          />
+          <button className="btn-send" onClick={() => sendMessage(inputVal)}>Send</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DRUG ROW COMPONENT ───────────────────────────────────────────────────────
+function DrugRow({ drugKey, drugLabel, patient, orderedMeds, onOrder, onOrderSigned, onAskAI }) {
+  const med = patient.meds[drugKey];
+  const rec = getRecommendation(drugKey, patient);
+  const isOrdered = orderedMeds[`${patient.id}-${drugKey}`];
+
+  const drugColors = { arni: '#2E86AB', bb: '#1B5E7B', mra: '#7B4EA0', sglt2: '#E07B39' };
+  const color = drugColors[drugKey];
+
+  return (
+    <tr>
+      <td style={{ minWidth: 130 }}>
+        <span className="drug-class-name" style={{ color }}>{drugLabel}</span><br />
+        <span className="drug-generic">{med.drug}</span><br />
+        <span className="drug-brand">({med.brand})</span>
+        {med.homeMed && <><br /><span className="home-med-badge">Home Med</span></>}
+      </td>
+      <td style={{ minWidth: 140 }}>
+        <ParamsList drugKey={drugKey} patient={patient} />
+      </td>
+      <td style={{ minWidth: 60, textAlign: 'center' }}>
+        {med.on
+          ? <span className="on-med-yes">&#11044; YES</span>
+          : <span className="on-med-no">&#11044; NO</span>
+        }
+      </td>
+      <td style={{ minWidth: 130 }}>
+        {med.on ? (
+          <>
+            <span className="current-dose" style={{ color }}>{med.currentDose}</span><br />
+            {!med.atTarget && <span className="target-dose">Target: {med.targetDose}</span>}
+            {med.atTarget && <span className="target-dose" style={{ color: '#1a7a2e', fontStyle: 'normal', fontSize: 11 }}>At target dose</span>}
+          </>
+        ) : (
+          <>
+            <span className="not-prescribed">Not prescribed</span><br />
+            <span className="target-dose">Target: {med.targetDose}</span>
+          </>
+        )}
+      </td>
+      <td style={{ minWidth: 100, fontSize: 11, color: '#444' }}>{med.oop}</td>
+      <td style={{ minWidth: 220 }}>
+        <div className="rec-text">
+          <span className="rec-action" style={{ color: rec.actionColor }}>{rec.actionText}. </span>
+          {rec.text}
+        </div>
+        <div className="rec-buttons">
+          <button
+            className={`btn-order${isOrdered ? ' signed' : ''}`}
+            onClick={() => !isOrdered && onOrder(drugKey)}
+            disabled={isOrdered}
+          >
+            {isOrdered ? 'Ordered' : 'Order'}
+          </button>
+          {isOrdered && <span className="order-signed-badge">&#10003; Order Signed</span>}
+          <button className="btn-askai" onClick={() => onAskAI(drugKey)}>Ask AI</button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// ─── PATIENT CARD ─────────────────────────────────────────────────────────────
+function PatientCard({ patient, orderedMeds, setOrderedMeds, feedbackState, setFeedbackState }) {
+  const [orderModal, setOrderModal] = useState(null);
+  const [chatModal, setChatModal] = useState(null);
+  const fb = feedbackState[patient.id] || {};
+
+  function handleFeedbackSelect(val) {
+    setFeedbackState(prev => ({ ...prev, [patient.id]: { ...prev[patient.id], selected: val, saved: false } }));
+  }
+
+  function handleFeedbackSubmit() {
+    setFeedbackState(prev => ({ ...prev, [patient.id]: { ...prev[patient.id], saved: true } }));
+  }
+
+  const hospitalist = PROVIDERS[patient.hospitalist];
+  const cardiologist = PROVIDERS[patient.cardiologist];
+
+  const drugRows = [
+    { key: 'arni', label: 'ARNI' },
+    { key: 'bb', label: 'Beta-Blocker' },
+    { key: 'mra', label: 'MRA' },
+    { key: 'sglt2', label: 'SGLT2i' }
+  ];
+
+  return (
+    <div className="patient-card">
+      <div className="patient-header">
+        <div className="patient-header-left">
+          <div className="patient-name">
+            {patient.name}
+            {patient.quadruple && <span className="quadruple-badge">QUADRUPLE GDMT</span>}
+          </div>
+          <div className="patient-meta">
+            Age {patient.age} | EF {patient.ef}% | Hospital Day {patient.hospDay}
+          </div>
+        </div>
+        <div className="patient-header-right">
+          <div>MRN: {patient.mrn}</div>
+          <div>{hospitalist ? hospitalist.name : ''} / {cardiologist ? cardiologist.name : ''}</div>
+          <div>Dx: {patient.diagnoses.slice(0,2).join(', ')}</div>
+          <div>Allergies: {patient.allergies}</div>
+        </div>
+      </div>
+      <div className="gdmt-table-wrap">
+        <table className="gdmt-table">
+          <thead>
+            <tr>
+              <th>Medication</th>
+              <th>Parameters</th>
+              <th>On Med</th>
+              <th>Current / Target Dose</th>
+              <th>Monthly OOP</th>
+              <th>Recommendation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {drugRows.map(({ key, label }) => (
+              <DrugRow
+                key={key}
+                drugKey={key}
+                drugLabel={label}
+                patient={patient}
+                orderedMeds={orderedMeds}
+                onOrder={(dk) => setOrderModal(dk)}
+                onOrderSigned={() => {}}
+                onAskAI={(dk) => setChatModal(dk)}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Feedback */}
+      <div className="feedback-section">
+        <h4>Was this information helpful for {patient.name}?</h4>
+        <div className="feedback-buttons">
+          <button
+            className={`btn-fb btn-fb-yes${fb.selected === 'yes' ? ' active' : ''}`}
+            onClick={() => handleFeedbackSelect('yes')}
+          >Yes</button>
+          <button
+            className={`btn-fb btn-fb-somewhat${fb.selected === 'somewhat' ? ' active' : ''}`}
+            onClick={() => handleFeedbackSelect('somewhat')}
+          >Somewhat</button>
+          <button
+            className={`btn-fb btn-fb-no${fb.selected === 'no' ? ' active' : ''}`}
+            onClick={() => handleFeedbackSelect('no')}
+          >No</button>
+        </div>
+        {fb.selected && !fb.saved && (
+          <div className="feedback-comment">
+            <label style={{ fontSize: 12, color: '#555', display: 'block', marginBottom: 4 }}>Comments (optional):</label>
+            <textarea
+              value={fb.comment || ''}
+              onChange={e => setFeedbackState(prev => ({ ...prev, [patient.id]: { ...prev[patient.id], comment: e.target.value } }))}
+              placeholder="Any additional comments..."
+            />
+            <div style={{ marginTop: 6 }}>
+              <button className="btn-order" onClick={handleFeedbackSubmit} style={{ fontSize: 11 }}>Submit</button>
+            </div>
+          </div>
+        )}
+        {fb.saved && (
+          <div className="feedback-saved">
+            <span className="checkmark">&#10003;</span> Feedback saved. Thank you!
+          </div>
+        )}
+        {fb.selected && !fb.saved && !fb.comment && (
+          <div className="feedback-saved" onClick={handleFeedbackSubmit} style={{ cursor: 'pointer' }}>
+            <span className="checkmark">&#10003;</span> Click to save feedback
+          </div>
+        )}
+      </div>
+
+      {orderModal && (
+        <OrderModal
+          patient={patient}
+          drugKey={orderModal}
+          onClose={() => setOrderModal(null)}
+          onSigned={() => {
+            setOrderedMeds(prev => ({ ...prev, [`${patient.id}-${orderModal}`]: true }));
+            setOrderModal(null);
+          }}
+        />
+      )}
+      {chatModal && (
+        <ChatModal
+          patient={patient}
+          drugKey={chatModal}
+          onClose={() => setChatModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── PERFORMANCE CHART ────────────────────────────────────────────────────────
+function PerformanceChart({ provider }) {
+  const isAll = provider.id === 'all';
+  const providerRate = isAll ? null : provider.gdmtRate;
+
+  const bars = [
+    ...(providerRate !== null ? [{
+      label: provider.name,
+      sublabel: provider.role,
+      rate: providerRate,
+      color: '#1B5E7B',
+    }] : []),
+    { label: 'Organization', sublabel: 'All Providers', rate: ORG_RATE, color: '#2E86AB' },
+    { label: 'National Average', sublabel: 'GWTG-HF Registry', rate: NATIONAL_RATE, color: '#8aa4b0' },
+  ];
+
+  return (
+    <div className="perf-section">
+      <h3>Quadruple GDMT Rate -- Your Performance vs. Peers <span style={{ fontWeight: 400, fontSize: 12, color: '#666' }}>[excludes patients with contraindications]</span></h3>
+      <div className="h-bar-list">
+        {bars.map((bar, i) => (
+          <div key={i} className="h-bar-row">
+            <div className="h-bar-label">
+              <div style={{ fontWeight: 600, color: '#333' }}>{bar.label}</div>
+              {bar.sublabel && <div style={{ fontSize: 11, color: '#888' }}>{bar.sublabel}</div>}
+            </div>
+            <div className="h-bar-track">
+              <div className="h-bar-fill" style={{ width: bar.rate + '%', background: bar.color }}>
+                <span className="h-bar-pct">{bar.rate}%</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="perf-source" style={{ marginTop: 12 }}>National avg: Greene SJ, et al. JACC Heart Fail. 2024; GWTG-HF Registry, newly diagnosed HFrEF, 2021-2023 (n=33,036, 373 hospitals). Rate reflects eligible patients prescribed quadruple therapy at discharge.</div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function App() {
+  const [selectedProvider, setSelectedProvider] = useState('all');
+  const [orderedMeds, setOrderedMeds] = useState({});
+  const [feedbackState, setFeedbackState] = useState({});
+
+  const provider = PROVIDERS[selectedProvider];
+
+  const visiblePatients = selectedProvider === 'all'
+    ? PATIENTS
+    : PATIENTS.filter(p => p.hospitalist === selectedProvider || p.cardiologist === selectedProvider);
+
+  return (
+    <>
+      <div className="demo-watermark">DEMO</div>
+      <div className="app-wrapper">
+        {/* Selector Bar */}
+        <div className="selector-bar">
+          <label>Viewing Report for:</label>
+          <select value={selectedProvider} onChange={e => setSelectedProvider(e.target.value)}>
+            {Object.values(PROVIDERS).map(p => (
+              <option key={p.id} value={p.id}>
+                {p.id === 'all' ? 'All Providers' : `${p.name} (${p.role})`}
+              </option>
+            ))}
+          </select>
+          <span className="demo-badge">DEMO</span>
+        </div>
+
+        {/* Header */}
+        <div className="report-header">
+          <h1>GDMT Navigator Report</h1>
+          <span className="provider-name">
+            {provider.id === 'all' ? 'All Providers' : provider.name}
+          </span>
+        </div>
+        <div className="report-subheader">
+          GDMT for Hospitalized Heart Failure with Reduced Ejection Fraction (HFrEF) Patients
+        </div>
+
+        {/* Principles + Drug Cards */}
+        <div className="principles-section">
+          <div className="principles-left">
+            <h3>Key Principles of GDMT Initiation</h3>
+            <ul>
+              <li><strong>Avoid Delays:</strong> In-hospital initiation of all eligible GDMT agents is strongly supported by current guidelines and trial evidence.</li>
+              <li><strong>In-hospital action:</strong> Each hospitalization is a critical touchpoint to initiate or uptitrate therapy before the high-risk post-discharge period.</li>
+              <li><strong>Benefits greatest among older, frail, and comorbid patients:</strong> The absolute risk reduction from GDMT is highest in the most vulnerable populations.</li>
+              <li><strong>Favorable safety profile:</strong> In the absence of absolute contraindications, the benefits of GDMT initiation outweigh the risks even during hospitalization.</li>
+              <li><strong>Verify and monitor key parameters:</strong> Confirm SBP, eGFR, K+, and HR are within acceptable ranges before initiating or titrating any GDMT agent; recheck labs within 1-2 weeks of any change.</li>
+            </ul>
+          </div>
+          <div className="drug-cards-right">
+            <h3>Quadruple Therapy for HFrEF GDMT -- Class I Recommendations</h3>
+            <div className="drug-cards-grid">
+              <div className="drug-card" style={{ background: '#2E86AB' }}>
+                <div className="dc-class">ARNI</div>
+                <div className="dc-generic">Sacubitril/Valsartan (Entresto)</div>
+                <div className="dc-row"><div className="dc-label">Starting</div><div className="dc-val">24/26 mg BID</div></div>
+                <div className="dc-row"><div className="dc-label">Target</div><div className="dc-val">97/103 mg BID</div></div>
+                <div className="dc-params">SBP &gt;100 | eGFR &gt;30 | K &lt;5.4</div>
+              </div>
+              <div className="drug-card" style={{ background: '#1B5E7B' }}>
+                <div className="dc-class">Beta-Blocker</div>
+                <div className="dc-generic">Carvedilol / Metop. Succ. / Bisoprolol</div>
+                <div className="dc-row"><div className="dc-label">Starting</div><div className="dc-val">Low-dose QD/BID</div></div>
+                <div className="dc-row"><div className="dc-label">Target</div><div className="dc-val">Evidence-based max</div></div>
+                <div className="dc-params">SBP &gt;100 | HR &gt;60 | Euvolemic</div>
+              </div>
+              <div className="drug-card" style={{ background: '#7B4EA0' }}>
+                <div className="dc-class">MRA</div>
+                <div className="dc-generic">Spironolactone / Eplerenone</div>
+                <div className="dc-row"><div className="dc-label">Starting</div><div className="dc-val">12.5-25 mg QD</div></div>
+                <div className="dc-row"><div className="dc-label">Target</div><div className="dc-val">50 mg QD</div></div>
+                <div className="dc-params">SBP &gt;100 | eGFR &gt;30 | K &lt;5.0</div>
+              </div>
+              <div className="drug-card" style={{ background: '#E07B39' }}>
+                <div className="dc-class">SGLT2i</div>
+                <div className="dc-generic">Dapa / Empa / Sotagliflozin</div>
+                <div className="dc-row"><div className="dc-label">Dose</div><div className="dc-val">10 mg QD (fixed)</div></div>
+                <div className="dc-row"><div className="dc-label">Titration</div><div className="dc-val">None required</div></div>
+                <div className="dc-params">eGFR &gt;25 (no SBP restriction)</div>
+              </div>
+            </div>
+            <div className="stat-box" style={{ marginTop: 10 }}>
+              <strong>Patients on quadruple GDMT:</strong> 73% relative reduction in 2-year all-cause mortality, 37% lower risk of 30-day readmission vs. no GDMT.
+              <span className="source">Source: Vaduganathan M, et al. NEJM 2022; Maddox TM, et al. JAMA 2021.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Patients Section */}
+        <div className="section-header">
+          Current Patients -- GDMT Status
+          {selectedProvider !== 'all' && (
+            <span style={{ fontWeight: 400, fontSize: 12, marginLeft: 12 }}>
+              ({visiblePatients.length} patient{visiblePatients.length !== 1 ? 's' : ''} shown for {provider.name})
+            </span>
+          )}
+        </div>
+
+        {visiblePatients.length === 0 && (
+          <div style={{ padding: 24, color: '#888', textAlign: 'center' }}>No patients found for this provider.</div>
+        )}
+
+        {visiblePatients.map(patient => (
+          <PatientCard
+            key={patient.id}
+            patient={patient}
+            orderedMeds={orderedMeds}
+            setOrderedMeds={setOrderedMeds}
+            feedbackState={feedbackState}
+            setFeedbackState={setFeedbackState}
+          />
+        ))}
+
+        {/* Performance Chart */}
+        <PerformanceChart provider={provider} />
+
+        {/* Disclaimer */}
+        <div className="disclaimer">
+          This report is intended to support clinical decision-making and is not intended to replace clinical judgement about medications. All medication decisions should be individualized based on patient history, preferences, and clinical context. GDMT recommendations are based on the 2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure. This is a proof-of-concept demonstration tool only.
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
