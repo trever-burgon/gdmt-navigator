@@ -1472,6 +1472,27 @@ function getChatResponse(drugKey, questionText, patient) {
     sglt2: `${intro}For ${patient.insurance} coverage: ${med.oop}. AstraZeneca offers the Farxiga Savings Card (up to $0 copay for commercially insured). Boehringer Ingelheim offers the Jardiance Savings Program. Medicare patients: Inflation Reduction Act capped out-of-pocket costs. Patient assistance programs available for low-income patients.`
   };
 
+  const thresholds = {
+    arni: `${patient.name}'s eGFR is ${patient.labs.egfr} mL/min. Per the 2024 ACC Expert Consensus (Maddox et al., JACC 2024): ${patient.labs.egfr >= 60 ? 'no renal dose adjustment needed at any titration step.' : patient.labs.egfr >= 30 ? 'mild-to-moderate impairment (eGFR 30-59 mL/min) -- no starting dose adjustment required; standard titration to target 97/103 mg BID can proceed.' : 'severe impairment (eGFR <30 mL/min) -- start at 24/26 mg BID and titrate every 2-4 weeks as tolerated.'} SBP is ${patient.vitals.sbp} mmHg (hold threshold: <100 mmHg) -- ${patient.vitals.sbp >= 100 ? 'dose escalation can proceed.' : 'hold uptitration until SBP improves.'}`,
+    bb: `${patient.name}'s HR is ${patient.vitals.hr} bpm (hold uptitration if HR <60 bpm) -- ${patient.vitals.hr >= 60 ? 'uptitration can proceed.' : 'hold dose increase until HR improves.'} SBP is ${patient.vitals.sbp} mmHg (hold threshold: <100 mmHg) -- ${patient.vitals.sbp >= 100 ? 'dose escalation can proceed.' : 'hold until SBP improves.'} No eGFR-based threshold for beta-blockers -- carvedilol, metoprolol succinate, and bisoprolol are used regardless of renal function. (2022 AHA/ACC/HFSA Guidelines)`,
+    mra: `${patient.name}'s eGFR is ${patient.labs.egfr} mL/min (minimum to initiate and continue: ≥30 mL/min) -- ${patient.labs.egfr >= 30 ? 'eligible.' : 'CONTRAINDICATED -- eGFR below 30 mL/min.'} K is ${patient.labs.k} mEq/L (initiation requires K <5.0 mEq/L; contraindicated if K ≥5.5 mEq/L) -- ${patient.labs.k < 5.0 ? 'eligible to initiate.' : patient.labs.k < 5.5 ? 'hold initiation; reassess when K returns below 5.0 mEq/L.' : 'CONTRAINDICATED -- K at or above 5.5 mEq/L.'} (2022 AHA/ACC/HFSA Guidelines)`,
+    sglt2: `${patient.name}'s eGFR is ${patient.labs.egfr} mL/min. Per the 2024 ACC Expert Consensus (Maddox et al., JACC 2024): minimum eGFR for dapagliflozin or sotagliflozin in HF is 25 mL/min -- ${patient.labs.egfr >= 25 ? `${patient.labs.egfr} mL/min is above threshold; eligible for initiation and continuation.` : `${patient.labs.egfr} mL/min is BELOW the 25 mL/min threshold; do not initiate or continue dapagliflozin or sotagliflozin.`} No SBP-based dosing threshold for SGLT2i.`
+  };
+
+  if (q.includes('threshold') || q.includes('cutoff') || q.includes('cut-off') || q.includes('escalat') || q.includes('eligible') || q.includes('can i start') || q.includes('can we start') || q.includes('ok to start') || q.includes('ok to initiat') || q.includes('can i initiat') || q.includes('can i uptitrat') || q.includes('can i increase') || q.includes('ok to increase') || q.includes('ok to escalat') || q.includes('current egfr') || q.includes('current sbp') || q.includes('current k') || q.includes('current potassium') || (q.includes('egfr') && (q.includes('ok') || q.includes('enough') || q.includes('minimum') || q.includes('require') || q.includes('need') || q.includes('low') || q.includes('for dose'))) || (q.includes('sbp') && (q.includes('ok') || q.includes('hold') || q.includes('low') || q.includes('need'))) || (q.includes('potassium') && (q.includes('ok') || q.includes('high') || q.includes('hold') || q.includes('need')))) {
+    return thresholds[drugKey] || `Check current lab values and vitals against guideline thresholds for ${dn}.`;
+  }
+
+  const contraindications = {
+    arni: `${intro}Per the 2024 ACC Expert Consensus Decision Pathway for HFrEF (Maddox et al., JACC 2024, doi:10.1016/j.jacc.2023.12.024): CONTRAINDICATIONS include use within 36 hours of an ACE inhibitor, any history of angioedema, pregnancy, lactation, severe hepatic impairment (Child-Pugh class C), concomitant aliskiren use in patients with diabetes, and known hypersensitivity to ARBs or ARNIs. CAUTIONS by renal function: eGFR 30-59 mL/min -- no starting dose adjustment required; eGFR <30 mL/min -- start at 24/26 mg BID and titrate every 2-4 weeks toward 97/103 mg BID as tolerated. Cautions by hepatic function: Child-Pugh A -- no adjustment needed; Child-Pugh B -- start at 24/26 mg BID. Additional cautions: renal artery stenosis, SBP <100 mmHg, and volume depletion. Current eGFR for ${patient.name}: ${patient.labs.egfr} mL/min (${patient.labs.egfr >= 30 ? patient.labs.egfr >= 60 ? 'no dose adjustment needed' : 'mild-to-moderate impairment, no starting dose adjustment required' : 'severe impairment, start at 24/26 mg BID'}).`,
+    sglt2: `${intro}Per the 2024 ACC Expert Consensus Decision Pathway for HFrEF (Maddox et al., JACC 2024, doi:10.1016/j.jacc.2023.12.024): CONTRAINDICATIONS include type 1 diabetes (due to increased DKA risk) and known hypersensitivity to the drug. CAUTIONS include: eGFR <25 mL/min/1.73 m2 for dapagliflozin or sotagliflozin (minimum threshold for HF use -- do not initiate or continue below this level); pregnancy; increased risk of mycotic genital infections; volume depletion (consider adjusting diuretic dose before starting); diabetic ketoacidosis risk (hold at least 3 days before scheduled surgery in patients with diabetes); acute kidney injury (consider temporary discontinuation with reduced oral intake or significant fluid losses); urosepsis and pyelonephritis (evaluate for UTI symptoms before and during therapy); and rare but serious Fournier's gangrene (necrotizing fasciitis of the perineum -- discontinue immediately if suspected). Current eGFR for ${patient.name}: ${patient.labs.egfr} mL/min (${patient.labs.egfr >= 25 ? 'above the 25 mL/min minimum threshold -- eligible for initiation' : 'BELOW the 25 mL/min minimum threshold -- do not initiate dapagliflozin or sotagliflozin'}).`,
+    bb: `${intro}Per the 2022 AHA/ACC/HFSA HF Guidelines: CONTRAINDICATIONS include high-degree AV block without a pacemaker, severe bradycardia (HR <50 bpm), cardiogenic shock, and severe reactive airway disease with active bronchospasm. Do not initiate during acute decompensated HF with significant fluid overload -- stabilize first, then start at low dose. CAUTIONS: hold uptitration if HR <60 bpm or SBP <100 mmHg; active fluid retention (weight gain, worsening edema); concurrent use of other rate-slowing agents. Current HR for ${patient.name}: ${patient.vitals.hr} bpm, SBP: ${patient.vitals.sbp} mmHg.`,
+    mra: `${intro}Per the 2022 AHA/ACC/HFSA HF Guidelines: CONTRAINDICATIONS include serum K >= 5.5 mEq/L or eGFR <30 mL/min/1.73 m2 at initiation. Do not initiate if K >= 5.0 mEq/L -- reassess when K returns below 5.0. CAUTIONS: hold uptitration if K >= 5.0 mEq/L or eGFR drops below 30 mL/min; avoid concurrent NSAID use (precipitates hyperkalemia); spironolactone may cause gynecomastia or breast tenderness (switch to eplerenone if this occurs); monitor for signs of volume depletion if used with aggressive diuresis. Consider patiromer (potassium binder) to maintain eligibility in patients with borderline K. Current K for ${patient.name}: ${patient.labs.k} mEq/L, eGFR: ${patient.labs.egfr} mL/min (${patient.labs.k < 5.0 && patient.labs.egfr >= 30 ? 'eligible for initiation' : patient.labs.k >= 5.5 || patient.labs.egfr < 30 ? 'CONTRAINDICATED at current values' : 'caution -- reassess before initiating'}).`
+  };
+
+  if (q.includes('contraindic') || q.includes('caution') || q.includes('warning') || q.includes('avoid') || q.includes('not safe') || q.includes('minimum egfr') || q.includes('egfr minimum') || q.includes('egfr threshold') || q.includes('egfr require') || q.includes('kidney require') || q.includes('renal require') || q.includes('when not') || q.includes('cannot start') || q.includes('should not')) {
+    return contraindications[drugKey] || `Review contraindications and cautions for ${dn} with your pharmacist or per the 2024 ACC Expert Consensus Decision Pathway (JACC 2024).`;
+  }
   if (q.includes('evidence') || q.includes('trial') || q.includes('study') || q.includes('guideline') || q.includes('data')) {
     return evidence[drugKey] || `The evidence base for ${dn} in HFrEF is strong, with Class I guideline recommendations.`;
   }
@@ -1608,11 +1629,14 @@ function getDoseOptions(drugKey, med) {
   return [med.currentDose || med.targetDose || '10 mg QD'];
 }
 
-function OrderModal({ patient, drugKey, onClose, onSigned }) {
+function OrderModal({ patient, drugKey, onClose, onSigned, viewingProvider }) {
   const [signed, setSigned] = useState(false);
   const med = patient.meds[drugKey];
   const rec = getRecommendation(drugKey, patient);
-  const prescriber = PROVIDERS[patient.cardiologist];
+  const fallbackPrescriber = PROVIDERS[patient.cardiologist];
+  const defaultPrescriberName = (viewingProvider && viewingProvider.id !== 'all')
+    ? viewingProvider.name
+    : (fallbackPrescriber ? fallbackPrescriber.name : '');
 
   const drugDisplayNames = {
     arni: `Sacubitril/Valsartan (Entresto) tablet`,
@@ -1634,8 +1658,8 @@ function OrderModal({ patient, drugKey, onClose, onSigned }) {
     freq: freqMap[drugKey] || 'Once daily (QD)',
     start: TODAY_ISO,
     duration: 'Through discharge',
-    orderClass: 'Discharge Order',
-    prescriber: prescriber ? prescriber.name : '',
+    orderClass: 'Inpatient Order',
+    prescriber: defaultPrescriberName,
     instructions: ''
   });
 
@@ -1702,8 +1726,8 @@ function OrderModal({ patient, drugKey, onClose, onSigned }) {
                 <div className="epic-field">
                   <label>Order Class</label>
                   <select value={form.orderClass} onChange={e => setForm({ ...form, orderClass: e.target.value })}>
-                    <option>Discharge Order</option>
                     <option>Inpatient Order</option>
+                    <option>Discharge Order</option>
                     <option>PRN Order</option>
                   </select>
                 </div>
@@ -1882,7 +1906,7 @@ function DrugRow({ drugKey, drugLabel, patient, orderedMeds, onOrder, onOrderSig
 }
 
 // ─── PATIENT CARD ─────────────────────────────────────────────────────────────
-function PatientCard({ patient, orderedMeds, setOrderedMeds, feedbackState, setFeedbackState }) {
+function PatientCard({ patient, orderedMeds, setOrderedMeds, feedbackState, setFeedbackState, viewingProvider }) {
   const [orderModal, setOrderModal] = useState(null);
   const [chatModal, setChatModal] = useState(null);
   const fb = feedbackState[patient.id] || {};
@@ -1999,6 +2023,7 @@ function PatientCard({ patient, orderedMeds, setOrderedMeds, feedbackState, setF
         <OrderModal
           patient={patient}
           drugKey={orderModal}
+          viewingProvider={viewingProvider}
           onClose={() => setOrderModal(null)}
           onSigned={() => {
             setOrderedMeds(prev => ({ ...prev, [`${patient.id}-${orderModal}`]: true }));
@@ -2099,7 +2124,7 @@ function App() {
         {/* Principles + Drug Cards */}
         <div className="principles-section">
           <div className="principles-left">
-            <h3>Key Principles of GDMT Initiation</h3>
+            <h3>Key Principles of GDMT Initiation and Uptitration</h3>
             <ul>
               <li><strong>Avoid Delays:</strong> In-hospital initiation of all eligible GDMT agents is strongly supported by current guidelines and trial evidence.</li>
               <li><strong>In-hospital action:</strong> Each hospitalization is a critical touchpoint to initiate or uptitrate therapy before the high-risk post-discharge period.</li>
@@ -2141,7 +2166,11 @@ function App() {
               </div>
             </div>
             <div className="stat-box" style={{ marginTop: 10 }}>
-              <strong>Patients on quadruple GDMT:</strong> 73% relative reduction in 2-year all-cause mortality, 37% lower risk of 30-day readmission vs. no GDMT.
+              <strong>Patients on quadruple GDMT:</strong>
+              <ul style={{ margin: '6px 0 4px 0', paddingLeft: 18 }}>
+                <li><strong>73%</strong> relative reduction in 2-year all-cause mortality vs. no GDMT</li>
+                <li><strong>37%</strong> lower risk of 30-day readmission vs. no GDMT</li>
+              </ul>
               <span className="source">Source: Vaduganathan M, et al. NEJM 2022; Maddox TM, et al. JAMA 2021.</span>
             </div>
           </div>
@@ -2169,6 +2198,7 @@ function App() {
             setOrderedMeds={setOrderedMeds}
             feedbackState={feedbackState}
             setFeedbackState={setFeedbackState}
+            viewingProvider={provider}
           />
         ))}
 
